@@ -209,20 +209,20 @@ async function startBot() {
     if (isNewLogin) {
       log.info("Nuevo dispositivo detectado")
     }
-    if (receivedPendingNotifications == "true") {
+    if (receivedPendingNotifications) {
       log.warn("Por favor espere aproximadamente 1 minuto...")
       client.ev.flush()
     }
   });
 
   let m
-  client.ev.on("messages.upsert", async ({ messages }) => {
+  client.ev.on("messages.upsert", async ({ messages, type }) => {
     try {
       m = messages[0]
       if (!m.message) return
       m.message = Object.keys(m.message)[0] === "ephemeralMessage" ? m.message.ephemeralMessage.message : m.message
       if (m.key && m.key.remoteJid === "status@broadcast") return
-      if (!client.public && !m.key.fromMe && messages.type === "notify") return
+      if (!client.public && !m.key.fromMe && type === "notify") return
       if (m.key.id.startsWith("BAE5") && m.key.id.length === 16) return
       m = await smsg(client, m)
       main(client, m, messages)
