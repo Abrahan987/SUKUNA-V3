@@ -9,7 +9,7 @@ Este proyecto **no está afiliado de ninguna manera** con `WhatsApp`, `Inc. What
 <details>
 <summary><b> ➮ Descripción</b></summary>
 
-Yuki Bot es un bot de WhatsApp multifuncional basado en `baileys`. Este bot ofrece una variedad de características para mejorar tu experiencia en WhatsApp.
+Sukuna V3 es un bot de WhatsApp multifuncional basado en `baileys`. Este bot ofrece una variedad de características para mejorar tu experiencia en WhatsApp.
 
 #### Características
 Configuración avanzada de grupos
@@ -89,12 +89,12 @@ cd && cd SukunaV3 && npm start
 > *Detén el bot, haz click en el símbolo (ctrl) [default=z] usar la letra "z" + "ENTER" hasta que salga algo verdes similar a: `SukunaV3 $`*
 > **Escribe los siguientes comandos uno x uno :**
 ```bash
-cd && cd SukunaV3 && rm -rf sessions/Owner && npm run qr
+cd && cd SukunaV3 && rm -rf sessions/owner && npm run qr
 ```
 ----
 ### Obtener nuevo código de teléfono
 ```bash
-cd && cd SukunaV3 && rm -rf sessions/Owner && npm run code
+cd && cd SukunaV3 && rm -rf sessions/owner && npm run code
 ```
 </details>
 
@@ -167,5 +167,5 @@ href="https://home.akirax.net"><img src="https://o.uguu.se/mfnuwWzC.jpeg" height
 
 ### **`ᥫ᭡ Propietario`**
 <a
-href="https://github.com/Abrahan987"><img src="https://github.com/Abrahan987.png" width="130" height="130" alt="
+href="https://github.com/The-King-Destroy"><img src="https://github.com/The-King-Destroy.png" width="130" height="130" alt="
 ⁱᵃᵐ|𝔇ĕ𝐬†𝓻⊙γ𒆜"/></a>

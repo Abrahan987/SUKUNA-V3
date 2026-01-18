@@ -8,10 +8,10 @@ import qrcode from "qrcode-terminal";
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
+import NodeCache from "node-cache";
 import readlineSync from "readline-sync";
 import readline from "readline";
 import os from "os";
-import NodeCache from "node-cache";
 import { smsg } from "./lib/message.js";
 import db from "./lib/system/database.js";
 import { startSubBot } from './lib/subs.js';
@@ -34,7 +34,6 @@ const log = {
 
   let phoneNumber = global.botNumber || ""
   let phoneInput = ""
-  const groupCache = new NodeCache({ stdTTL: 3600, checkperiod: 300 });
   const methodCodeQR = process.argv.includes("--qr")
   const methodCode = !!phoneNumber || process.argv.includes("--code")
   const DIGITS = (s = "") => String(s).replace(/\D/g, "");
@@ -68,7 +67,7 @@ console.log(chalk.magentaBright('\n❀ Iniciando...'))
 })
 
 const BOT_TYPES = [
-  { name: 'SubBot', folder: './sessions/Subs', starter: startSubBot }
+  { name: 'SubBot', folder: './sessions/subs', starter: startSubBot }
 ]
 
 global.conns = global.conns || []
@@ -105,7 +104,7 @@ if (methodCodeQR) {
   opcion = "1"
 } else if (methodCode) {
   opcion = "2"
-} else if (!fs.existsSync("./sessions/Owner/creds.json")) {
+} else if (!fs.existsSync("./sessions/owner/creds.json")) {
   do {
     opcion = readlineSync.question(chalk.bold.white("\nSeleccione una opción:\n") + chalk.blueBright("1. Con código QR\n") + chalk.cyan("2. Con código de texto de 8 dígitos\n--> "))
     if (opcion === "2") {
@@ -115,6 +114,8 @@ if (methodCodeQR) {
     }
   } while (opcion !== "1" && opcion !== "2")
 }
+
+const groupMetadataCache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
 
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState(global.sessionName)
@@ -135,19 +136,28 @@ async function startBot() {
     generateHighQualityLinkPreview: true,
     syncFullHistory: false,
     getMessage: async () => "",
-    cachedGroupMetadata: async (jid) => groupCache.get(jid),
-    keepAliveIntervalMs: 60000,
-    maxIdleTimeMs: 120000,
+    keepAliveIntervalMs: 45000,
+    maxIdleTimeMs: 60000,
   })
 
   global.client = client;
   client.isInit = false
   client.ev.on("creds.update", saveCreds)
-  if (opcion === "2" && !fs.existsSync("./sessions/Owner/creds.json")) {
+
+  const originalGroupMetadata = client.groupMetadata;
+  client.groupMetadata = async (jid) => {
+    let metadata = groupMetadataCache.get(jid);
+    if (metadata) return metadata;
+    metadata = await originalGroupMetadata(jid);
+    groupMetadataCache.set(jid, metadata);
+    return metadata;
+  };
+
+  if (opcion === "2" && !fs.existsSync("./sessions/owner/creds.json")) {
   setTimeout(async () => {
     try {
        if (!state.creds.registered) {
-        const pairing = await client.requestPairingCode(phoneNumber)
+        const pairing = await global.client.requestPairingCode(phoneNumber)
         const codeBot = pairing?.match(/.{1,4}/g)?.join("-") || pairing
         console.log(chalk.bold.white(chalk.bgMagenta(`Código de emparejamiento:`)), chalk.bold.white(chalk.white(codeBot)))
       }
@@ -187,15 +197,15 @@ async function startBot() {
         log.warning("Primero cierre la sesión actual...")
       } else if (reason === DisconnectReason.loggedOut) {
         log.warning("Escanee nuevamente y ejecute...")
-        exec("rm -rf ./sessions/Owner/*")
+        exec("rm -rf ./sessions/owner/*")
         process.exit(1)
       } else if (reason === DisconnectReason.forbidden) {
         log.error("Error de conexión, escanee nuevamente y ejecute...")
-        exec("rm -rf ./sessions/Owner/*")
+        exec("rm -rf ./sessions/owner/*")
         process.exit(1);
       } else if (reason === DisconnectReason.multideviceMismatch) {
         log.warning("Inicia nuevamente")
-        exec("rm -rf ./sessions/Owner/*")
+        exec("rm -rf ./sessions/owner/*")
         process.exit(0)
       } else {
         client.end(`Motivo de desconexión desconocido : ${reason}|${connection}`)
@@ -209,20 +219,20 @@ async function startBot() {
     if (isNewLogin) {
       log.info("Nuevo dispositivo detectado")
     }
-    if (receivedPendingNotifications) {
+    if (receivedPendingNotifications == "true") {
       log.warn("Por favor espere aproximadamente 1 minuto...")
       client.ev.flush()
     }
   });
 
   let m
-  client.ev.on("messages.upsert", async ({ messages, type }) => {
+  client.ev.on("messages.upsert", async ({ messages }) => {
     try {
       m = messages[0]
       if (!m.message) return
       m.message = Object.keys(m.message)[0] === "ephemeralMessage" ? m.message.ephemeralMessage.message : m.message
       if (m.key && m.key.remoteJid === "status@broadcast") return
-      if (!client.public && !m.key.fromMe && type === "notify") return
+      if (!client.public && !m.key.fromMe && messages.type === "notify") return
       if (m.key.id.startsWith("BAE5") && m.key.id.length === 16) return
       m = await smsg(client, m)
       main(client, m, messages)
@@ -244,27 +254,23 @@ async function startBot() {
   }
 }
 
-function clearTmp() {
-  const tmpDir = path.join(process.cwd(), 'tmp')
-  if (!fs.existsSync(tmpDir)) return
-  const files = fs.readdirSync(tmpDir)
-  for (const file of files) {
-    if (file === '.gitkeep') continue
-    const filePath = path.join(tmpDir, file)
-    try {
-      const stats = fs.statSync(filePath)
-      if (Date.now() - stats.mtimeMs > 1000 * 60 * 5) { // Delete files older than 5 minutes
-        fs.unlinkSync(filePath)
-      }
-    } catch (e) {}
-  }
-}
-
-setInterval(clearTmp, 1000 * 60 * 10) // Run every 10 minutes
-
 (async () => {
     global.loadDatabase()
     console.log(chalk.gray('[ ✿  ]  Base de datos cargada correctamente.'))
-    clearTmp()
   await startBot()
+
+  // Garbage Collection for tmp/
+  setInterval(() => {
+    const tmpDir = './tmp';
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
+    const files = fs.readdirSync(tmpDir);
+    const now = Date.now();
+    files.forEach(file => {
+      const filePath = path.join(tmpDir, file);
+      const stats = fs.statSync(filePath);
+      if (now - stats.mtimeMs > 5 * 60 * 1000) {
+        fs.unlinkSync(filePath);
+      }
+    });
+  }, 10 * 60 * 1000);
 })()

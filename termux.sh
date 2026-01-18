@@ -2,7 +2,7 @@
 
 #!/data/data/com.termux/files/usr/bin/bash
 BOT_DIR="SukunaV3"
-BOT_REPO="https://github.com/Abrahan987/$BOT_DIR"
+BOT_REPO="https://github.com/The-King-Destroy/$BOT_DIR"
 DB_FILE="database.json"
 
 GREEN='\033[32m'
