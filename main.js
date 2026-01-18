@@ -35,19 +35,32 @@ const namebot = isValidBotname ? rawBotname : 'SUKUNA V3'
 const shortForms = [namebot.charAt(0), namebot.split(" ")[0], tipo.split(" ")[0], namebot.split(" ")[0].slice(0, 2), namebot.split(" ")[0].slice(0, 3)]
 const prefixes = shortForms.map(name => `${name}`)
 prefixes.unshift(namebot)
-let prefix
-if (Array.isArray(settings.prefix) || typeof settings.prefix === 'string') {
-const prefixArray = Array.isArray(settings.prefix) ? settings.prefix : [settings.prefix]
-prefix = new RegExp('^(' + prefixes.join('|') + ')?(' + prefixArray.map(p => p.replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&')).join('|') + ')', 'i')
-} else {
-prefix = new RegExp('^(' + prefixes.join('|') + ')?', 'i')
+if (!client.prefix_regex || client.last_prefix !== JSON.stringify(settings.prefix)) {
+  let prefix
+  if (Array.isArray(settings.prefix) || typeof settings.prefix === 'string') {
+    const prefixArray = Array.isArray(settings.prefix) ? settings.prefix : [settings.prefix]
+    prefix = new RegExp('^(' + prefixes.join('|') + ')?(' + prefixArray.map(p => p.replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&')).join('|') + ')', 'i')
+  } else {
+    prefix = new RegExp('^(' + prefixes.join('|') + ')?', 'i')
+  }
+  client.prefix_regex = prefix
+  client.last_prefix = JSON.stringify(settings.prefix)
 }
-const strRegex = (str) => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
-let pluginPrefix = client.prefix ? client.prefix : prefix
-let matchs = pluginPrefix instanceof RegExp ? [[pluginPrefix.exec(m.text), pluginPrefix]] : Array.isArray(pluginPrefix) ? pluginPrefix.map(p => {
-let regex = p instanceof RegExp ? p : new RegExp(strRegex(p))
-return [regex.exec(m.text), regex]}) : typeof pluginPrefix === 'string' ? [[new RegExp(strRegex(pluginPrefix)).exec(m.text), new RegExp(strRegex(pluginPrefix))]] : [[null, null]]
-let match = matchs.find(p => p[0])
+
+let pluginPrefix = client.prefix ? client.prefix : client.prefix_regex
+let match
+if (pluginPrefix instanceof RegExp) {
+  const mExec = pluginPrefix.exec(m.text)
+  if (mExec) match = [mExec, pluginPrefix]
+} else {
+  // Fallback for non-regexp prefixes (less common in this bot)
+  const strRegex = (str) => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+  let matchs = Array.isArray(pluginPrefix) ? pluginPrefix.map(p => {
+    let regex = p instanceof RegExp ? p : new RegExp(strRegex(p))
+    return [regex.exec(m.text), regex]
+  }) : typeof pluginPrefix === 'string' ? [[new RegExp(strRegex(pluginPrefix)).exec(m.text), new RegExp(strRegex(pluginPrefix))]] : [[null, null]]
+  match = matchs.find(p => p[0])
+}
 if (!match) return
 let usedPrefix = (match[0] || [])[0] || ''
 let args = m.text.slice(usedPrefix.length).trim().split(" ")
@@ -66,7 +79,7 @@ groupAdmins = groupMetadata?.participants.filter(p => (p.admin === 'admin' || p.
 const isBotAdmins = m.isGroup ? groupAdmins.some(p => p.phoneNumber === botJid || p.jid === botJid || p.id === botJid || p.lid === botJid ) : false
 const isAdmins = m.isGroup ? groupAdmins.some(p => p.phoneNumber === sender || p.jid === sender || p.id === sender || p.lid === sender ) : false
 
-const chatData = global.db.data.chats[from]
+const chatData = global.db.data.chats[from] || {}
 const consolePrimary = chatData.primaryBot
 if (!consolePrimary || consolePrimary === client.user.id.split(':')[0] + '@s.whatsapp.net') {
 const h = chalk.bold.blue('╭────────────────────────────···')
@@ -76,7 +89,7 @@ console.log(`\n${h}\n${chalk.bold.yellow(`${v} Fecha: ${chalk.whiteBright(moment
 
 const hasPrefix = settings.prefix === true ? true : (Array.isArray(settings.prefix) ? settings.prefix : typeof settings.prefix === 'string' ? [settings.prefix] : []).some(p => m.text?.startsWith(p))
 function getAllSessionBots() {
-const sessionDirs = ['./Sessions/Subs']
+const sessionDirs = ['./sessions/Subs']
 let bots = []
 for (const dir of sessionDirs) {
 try {
@@ -88,7 +101,7 @@ bots.push(sub + '@s.whatsapp.net')
 }}} catch {}
 }
 try {
-const ownerCreds = path.resolve('./Sessions/Owner/creds.json')
+const ownerCreds = path.resolve('./sessions/Owner/creds.json')
 if (fs.existsSync(ownerCreds)) {
 const ownerId = global.client.user.id.split(':')[0] + '@s.whatsapp.net'
 bots.push(ownerId)
@@ -101,11 +114,11 @@ if (hasPrefix) {
 const participants = m.isGroup ? (await client.groupMetadata(m.chat).catch(() => ({ participants: [] }))).participants : []
 const primaryInGroup = participants.some(p => (p.phoneNumber || p.id) === botprimaryId)
 const isPrimarySelf = botprimaryId === botJid
-const primaryInSessions = getAllSessionBots().includes(botprimaryId)
-if (!primaryInSessions || !primaryInGroup) {
+const primaryInsessions = getAllSessionBots().includes(botprimaryId)
+if (!primaryInsessions || !primaryInGroup) {
 return
 }
-if ((primaryInSessions && primaryInGroup) || isPrimarySelf) {
+if ((primaryInsessions && primaryInGroup) || isPrimarySelf) {
 return
 }}}
 

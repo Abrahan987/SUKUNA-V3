@@ -3,7 +3,7 @@ import fs from 'fs';
 global.owner = [ '573237649689', '17089308726', '50378666265' ]
 global.botNumber = ''
 
-global.sessionName = 'Sessions/Owner'
+global.sessionName = 'sessions/Owner'
 global.version = '^2.0 - Latest'
 global.dev = "© ⍴᥆ᥕᥱrᥱძ ᑲᥡ ᴀʙʀᴀʜᴀɴ-ᴍ 𒆜"
 global.links = {

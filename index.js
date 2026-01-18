@@ -11,6 +11,7 @@ import path from "path";
 import readlineSync from "readline-sync";
 import readline from "readline";
 import os from "os";
+import NodeCache from "node-cache";
 import { smsg } from "./lib/message.js";
 import db from "./lib/system/database.js";
 import { startSubBot } from './lib/subs.js';
@@ -33,6 +34,7 @@ const log = {
 
   let phoneNumber = global.botNumber || ""
   let phoneInput = ""
+  const groupCache = new NodeCache({ stdTTL: 3600, checkperiod: 300 });
   const methodCodeQR = process.argv.includes("--qr")
   const methodCode = !!phoneNumber || process.argv.includes("--code")
   const DIGITS = (s = "") => String(s).replace(/\D/g, "");
@@ -66,7 +68,7 @@ console.log(chalk.magentaBright('\n❀ Iniciando...'))
 })
 
 const BOT_TYPES = [
-  { name: 'SubBot', folder: './Sessions/Subs', starter: startSubBot }
+  { name: 'SubBot', folder: './sessions/Subs', starter: startSubBot }
 ]
 
 global.conns = global.conns || []
@@ -103,7 +105,7 @@ if (methodCodeQR) {
   opcion = "1"
 } else if (methodCode) {
   opcion = "2"
-} else if (!fs.existsSync("./Sessions/Owner/creds.json")) {
+} else if (!fs.existsSync("./sessions/Owner/creds.json")) {
   do {
     opcion = readlineSync.question(chalk.bold.white("\nSeleccione una opción:\n") + chalk.blueBright("1. Con código QR\n") + chalk.cyan("2. Con código de texto de 8 dígitos\n--> "))
     if (opcion === "2") {
@@ -133,14 +135,15 @@ async function startBot() {
     generateHighQualityLinkPreview: true,
     syncFullHistory: false,
     getMessage: async () => "",
-    keepAliveIntervalMs: 45000,
-    maxIdleTimeMs: 60000,
+    cachedGroupMetadata: async (jid) => groupCache.get(jid),
+    keepAliveIntervalMs: 60000,
+    maxIdleTimeMs: 120000,
   })
 
   global.client = client;
   client.isInit = false
   client.ev.on("creds.update", saveCreds)
-  if (opcion === "2" && !fs.existsSync("./Sessions/Owner/creds.json")) {
+  if (opcion === "2" && !fs.existsSync("./sessions/Owner/creds.json")) {
   setTimeout(async () => {
     try {
        if (!state.creds.registered) {
@@ -184,15 +187,15 @@ async function startBot() {
         log.warning("Primero cierre la sesión actual...")
       } else if (reason === DisconnectReason.loggedOut) {
         log.warning("Escanee nuevamente y ejecute...")
-        exec("rm -rf ./Sessions/Owner/*")
+        exec("rm -rf ./sessions/Owner/*")
         process.exit(1)
       } else if (reason === DisconnectReason.forbidden) {
         log.error("Error de conexión, escanee nuevamente y ejecute...")
-        exec("rm -rf ./Sessions/Owner/*")
+        exec("rm -rf ./sessions/Owner/*")
         process.exit(1);
       } else if (reason === DisconnectReason.multideviceMismatch) {
         log.warning("Inicia nuevamente")
-        exec("rm -rf ./Sessions/Owner/*")
+        exec("rm -rf ./sessions/Owner/*")
         process.exit(0)
       } else {
         client.end(`Motivo de desconexión desconocido : ${reason}|${connection}`)
@@ -228,9 +231,9 @@ async function startBot() {
     }
   })
   try {
-  await events(client, m)
+    await events(client)
   } catch (err) {
-   console.log(chalk.gray(`[ BOT  ]  → ${err}`))
+    console.log(chalk.gray(`[ BOT  ]  → ${err}`))
   }
   client.decodeJid = (jid) => {
     if (!jid) return jid
@@ -241,8 +244,27 @@ async function startBot() {
   }
 }
 
+function clearTmp() {
+  const tmpDir = path.join(process.cwd(), 'tmp')
+  if (!fs.existsSync(tmpDir)) return
+  const files = fs.readdirSync(tmpDir)
+  for (const file of files) {
+    if (file === '.gitkeep') continue
+    const filePath = path.join(tmpDir, file)
+    try {
+      const stats = fs.statSync(filePath)
+      if (Date.now() - stats.mtimeMs > 1000 * 60 * 5) { // Delete files older than 5 minutes
+        fs.unlinkSync(filePath)
+      }
+    } catch (e) {}
+  }
+}
+
+setInterval(clearTmp, 1000 * 60 * 10) // Run every 10 minutes
+
 (async () => {
     global.loadDatabase()
     console.log(chalk.gray('[ ✿  ]  Base de datos cargada correctamente.'))
+    clearTmp()
   await startBot()
 })()
