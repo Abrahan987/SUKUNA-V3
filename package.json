@@ -6,9 +6,7 @@
   "type": "module",
   "scripts": {
     "format": "prettier --write .",
-    "start": "node index.js",
-    "qr": "node index.js --qr",
-    "code": "node index.js --code"
+    "start": "node index.js"
   },
   "keywords": [
     "whatsapp-bot",
@@ -27,6 +25,7 @@
     "@vitalets/google-translate-api": "^8.0.0",
     "@whiskeysockets/baileys": "github:jonathanggg/KennyBaileys",
     "acrcloud": "^1.4.0",
+    "awesome-phonenumber": "^5.10.0",
     "file-type": "^19.0.0",
     "aptoide-scraper": "github:DIEGO-OFC/dv-aptoide-scraper",
     "axios": "^0.24.0",
@@ -34,6 +33,7 @@
     "chalk": "^4.1.2",
     "cheerio": "npm:cheerio@1.0.0-rc.12",
     "express": "^4.19.2",
+    "file-type": "^19.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "form-data": "^4.0.0",
     "gradient-string": "^2.0.2",

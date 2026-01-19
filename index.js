@@ -8,7 +8,6 @@ import qrcode from "qrcode-terminal";
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import NodeCache from "node-cache";
 import readlineSync from "readline-sync";
 import readline from "readline";
 import os from "os";
@@ -67,7 +66,7 @@ console.log(chalk.magentaBright('\n❀ Iniciando...'))
 })
 
 const BOT_TYPES = [
-  { name: 'SubBot', folder: './sessions/subs', starter: startSubBot }
+  { name: 'SubBot', folder: './Sessions/Subs', starter: startSubBot }
 ]
 
 global.conns = global.conns || []
@@ -104,7 +103,7 @@ if (methodCodeQR) {
   opcion = "1"
 } else if (methodCode) {
   opcion = "2"
-} else if (!fs.existsSync("./sessions/owner/creds.json")) {
+} else if (!fs.existsSync("./Sessions/Owner/creds.json")) {
   do {
     opcion = readlineSync.question(chalk.bold.white("\nSeleccione una opción:\n") + chalk.blueBright("1. Con código QR\n") + chalk.cyan("2. Con código de texto de 8 dígitos\n--> "))
     if (opcion === "2") {
@@ -115,15 +114,13 @@ if (methodCodeQR) {
   } while (opcion !== "1" && opcion !== "2")
 }
 
-const groupMetadataCache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
-
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState(global.sessionName)
   const { version, isLatest } = await fetchLatestBaileysVersion();
   const logger = pino({ level: "silent" })
   console.info = () => {}
   console.debug = () => {}
-  const client = makeWASocket({
+  const clientt = makeWASocket({
     version,
     logger,
     printQRInTerminal: false,
@@ -140,20 +137,10 @@ async function startBot() {
     maxIdleTimeMs: 60000,
   })
 
-  global.client = client;
-  client.isInit = false
-  client.ev.on("creds.update", saveCreds)
-
-  const originalGroupMetadata = client.groupMetadata;
-  client.groupMetadata = async (jid) => {
-    let metadata = groupMetadataCache.get(jid);
-    if (metadata) return metadata;
-    metadata = await originalGroupMetadata(jid);
-    groupMetadataCache.set(jid, metadata);
-    return metadata;
-  };
-
-  if (opcion === "2" && !fs.existsSync("./sessions/owner/creds.json")) {
+  global.client = clientt;
+  clientt.isInit = false
+  clientt.ev.on("creds.update", saveCreds)
+  if (opcion === "2" && !fs.existsSync("./Sessions/Owner/creds.json")) {
   setTimeout(async () => {
     try {
        if (!state.creds.registered) {
@@ -167,9 +154,9 @@ async function startBot() {
   }, 3000)
 }
 
-  client.sendText = (jid, text, quoted = "", options) =>
-  client.sendMessage(jid, { text: text, ...options }, { quoted })
-  client.ev.on("connection.update", async (update) => {
+  clientt.sendText = (jid, text, quoted = "", options) =>
+  clientt.sendMessage(jid, { text: text, ...options }, { quoted })
+  clientt.ev.on("connection.update", async (update) => {
     const { qr, connection, lastDisconnect, isNewLogin, receivedPendingNotifications, } = update
     if (qr && opcion === "1" && !state.creds.registered) {
       console.log(chalk.green.bold("[ ✿ ] Escanea este código QR"))
@@ -197,15 +184,15 @@ async function startBot() {
         log.warning("Primero cierre la sesión actual...")
       } else if (reason === DisconnectReason.loggedOut) {
         log.warning("Escanee nuevamente y ejecute...")
-        exec("rm -rf ./sessions/owner/*")
+        exec("rm -rf ./Sessions/Owner/*")
         process.exit(1)
       } else if (reason === DisconnectReason.forbidden) {
         log.error("Error de conexión, escanee nuevamente y ejecute...")
-        exec("rm -rf ./sessions/owner/*")
+        exec("rm -rf ./Sessions/Owner/*")
         process.exit(1);
       } else if (reason === DisconnectReason.multideviceMismatch) {
         log.warning("Inicia nuevamente")
-        exec("rm -rf ./sessions/owner/*")
+        exec("rm -rf ./Sessions/Owner/*")
         process.exit(0)
       } else {
         client.end(`Motivo de desconexión desconocido : ${reason}|${connection}`)
@@ -226,26 +213,27 @@ async function startBot() {
   });
 
   let m
-  client.ev.on("messages.upsert", async ({ messages }) => {
+  clientt.ev.on("messages.upsert", async ({ messages }) => {
     try {
       m = messages[0]
       if (!m.message) return
       m.message = Object.keys(m.message)[0] === "ephemeralMessage" ? m.message.ephemeralMessage.message : m.message
       if (m.key && m.key.remoteJid === "status@broadcast") return
-      if (!client.public && !m.key.fromMe && messages.type === "notify") return
+      if (!clientt.public && !m.key.fromMe && messages.type === "notify") return
       if (m.key.id.startsWith("BAE5") && m.key.id.length === 16) return
-      m = await smsg(client, m)
-      main(client, m, messages)
+      m = await smsg(clientt, m)
+      main(clientt, m, messages)
     } catch (err) {
       console.log(err)
     }
   })
   try {
-    await events(client)
+    await events(clientt)
   } catch (err) {
     console.log(chalk.gray(`[ BOT  ]  → ${err}`))
   }
-  client.decodeJid = (jid) => {
+
+  clientt.decodeJid = (jid) => {
     if (!jid) return jid
     if (/:\d+@/gi.test(jid)) {
       let decode = jidDecode(jid) || {}
@@ -258,19 +246,4 @@ async function startBot() {
     global.loadDatabase()
     console.log(chalk.gray('[ ✿  ]  Base de datos cargada correctamente.'))
   await startBot()
-
-  // Garbage Collection for tmp/
-  setInterval(() => {
-    const tmpDir = './tmp';
-    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
-    const files = fs.readdirSync(tmpDir);
-    const now = Date.now();
-    files.forEach(file => {
-      const filePath = path.join(tmpDir, file);
-      const stats = fs.statSync(filePath);
-      if (now - stats.mtimeMs > 5 * 60 * 1000) {
-        fs.unlinkSync(filePath);
-      }
-    });
-  }, 10 * 60 * 1000);
 })()

@@ -3,9 +3,10 @@ import fs from 'fs';
 global.owner = [ '573237649689', '17089308726', '50378666265' ]
 global.botNumber = ''
 
-global.sessionName = 'sessions/owner'
+global.sessionName = 'Sessions/Owner'
 global.version = '^2.0 - Latest'
 global.dev = "© ⍴᥆ᥕᥱrᥱძ ᑲᥡ ᴀʙʀᴀʜᴀɴ-ᴍ 𒆜"
+global.redes = "https://github.com/Abrahan987/Billie-Bot"
 global.links = {
 api: 'https://api.stellarwa.xyz',
 channel: "https://whatsapp.com/channel/0029Vb7Jf17FCCoeAs3D9a2o",

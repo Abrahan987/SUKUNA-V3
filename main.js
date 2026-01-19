@@ -32,34 +32,21 @@ const rawBotname = settings.namebot || 'SUKUNA V3'
 const tipo = settings.type || 'Sub'
 const isValidBotname = /^[\w\s]+$/.test(rawBotname)
 const namebot = isValidBotname ? rawBotname : 'SUKUNA V3'
-const strRegex = (str) => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
 const shortForms = [namebot.charAt(0), namebot.split(" ")[0], tipo.split(" ")[0], namebot.split(" ")[0].slice(0, 2), namebot.split(" ")[0].slice(0, 3)]
-const prefixes = [...new Set([namebot, ...shortForms])].filter(p => p).map(p => strRegex(p))
-const prefixPattern = prefixes.join('|')
-
+const prefixes = shortForms.map(name => `${name}`)
+prefixes.unshift(namebot)
 let prefix
-if (settings.prefix) {
-  const prefixArray = Array.isArray(settings.prefix) ? settings.prefix : [settings.prefix]
-  const userPrefixPattern = prefixArray.map(p => strRegex(p)).join('|')
-  prefix = new RegExp(`^(${prefixPattern})?(${userPrefixPattern})`, 'i')
+if (Array.isArray(settings.prefix) || typeof settings.prefix === 'string') {
+const prefixArray = Array.isArray(settings.prefix) ? settings.prefix : [settings.prefix]
+prefix = new RegExp('^(' + prefixes.join('|') + ')?(' + prefixArray.map(p => p.replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&')).join('|') + ')', 'i')
 } else {
-  prefix = new RegExp(`^(${prefixPattern})?`, 'i')
+prefix = new RegExp('^(' + prefixes.join('|') + ')?', 'i')
 }
-
-let pluginPrefix = client.prefix || prefix
-let matchs = []
-if (pluginPrefix instanceof RegExp) {
-  matchs = [[pluginPrefix.exec(m.text), pluginPrefix]]
-} else if (Array.isArray(pluginPrefix)) {
-  matchs = pluginPrefix.map(p => {
-    let regex = p instanceof RegExp ? p : new RegExp(strRegex(p))
-    return [regex.exec(m.text), regex]
-  })
-} else if (typeof pluginPrefix === 'string') {
-  matchs = [[new RegExp(strRegex(pluginPrefix)).exec(m.text), new RegExp(strRegex(pluginPrefix))]]
-} else {
-  matchs = [[null, null]]
-}
+const strRegex = (str) => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+let pluginPrefix = client.prefix ? client.prefix : prefix
+let matchs = pluginPrefix instanceof RegExp ? [[pluginPrefix.exec(m.text), pluginPrefix]] : Array.isArray(pluginPrefix) ? pluginPrefix.map(p => {
+let regex = p instanceof RegExp ? p : new RegExp(strRegex(p))
+return [regex.exec(m.text), regex]}) : typeof pluginPrefix === 'string' ? [[new RegExp(strRegex(pluginPrefix)).exec(m.text), new RegExp(strRegex(pluginPrefix))]] : [[null, null]]
 let match = matchs.find(p => p[0])
 if (!match) return
 let usedPrefix = (match[0] || [])[0] || ''
@@ -89,7 +76,7 @@ console.log(`\n${h}\n${chalk.bold.yellow(`${v} Fecha: ${chalk.whiteBright(moment
 
 const hasPrefix = settings.prefix === true ? true : (Array.isArray(settings.prefix) ? settings.prefix : typeof settings.prefix === 'string' ? [settings.prefix] : []).some(p => m.text?.startsWith(p))
 function getAllSessionBots() {
-const sessionDirs = ['./sessions/Subs']
+const sessionDirs = ['./Sessions/Subs']
 let bots = []
 for (const dir of sessionDirs) {
 try {
@@ -101,7 +88,7 @@ bots.push(sub + '@s.whatsapp.net')
 }}} catch {}
 }
 try {
-const ownerCreds = path.resolve('./sessions/owner/creds.json')
+const ownerCreds = path.resolve('./Sessions/Owner/creds.json')
 if (fs.existsSync(ownerCreds)) {
 const ownerId = global.client.user.id.split(':')[0] + '@s.whatsapp.net'
 bots.push(ownerId)
