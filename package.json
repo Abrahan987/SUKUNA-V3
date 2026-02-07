@@ -2,11 +2,11 @@
   "name": "sukuna v3",
   "version": "2.0",
   "description": "WhatsApp Bot Multi Device",
-  "main": "src/index.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
     "format": "prettier --write .",
-    "start": "node src/index.js"
+    "start": "node index.js"
   },
   "keywords": [
     "whatsapp-bot",
