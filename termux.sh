@@ -9,6 +9,13 @@ GREEN='\033[32m'
 BOLD='\033[1m'
 RESET='\033[0m'
 
+echo -e "${BOLD}${GREEN}Verificando dependencias...${RESET}"
+if ! command -v node >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1; then
+    echo -e "${BOLD}${GREEN}Instalando dependencias necesarias...${RESET}"
+    pkg update && pkg upgrade -y
+    pkg install -y git nodejs ffmpeg imagemagick
+fi
+
 if [[ $(basename "$PWD") == "$BOT_DIR" ]]; then
 if [ -e "$DB_FILE" ]; then
 echo -e "${BOLD}${GREEN}Moviendo \"$DB_FILE\" a \"$HOME\" y clonando repositorio \"$BOT_REPO\" en \"$HOME\"...${RESET}"
