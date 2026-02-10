@@ -18,7 +18,7 @@ export const bodyMenu = `
 `;
 
 export const menuObject = {
-economia: `
+  economia: `
 ✦━━━━━━༺♡༻━━━━━━✦
 ⋆｡ﾟ☁︎｡⋆｡  𝗘𝗖𝗢𝗡𝗢𝗠𝗬  ⋆｡ﾟ☁︎｡⋆｡
 ✦━━━━━━༺♡༻━━━━━━✦
@@ -49,7 +49,7 @@ economia: `
 ✦ $prefixmath
 ✦ $prefixppt
 `,
-gacha: `
+  gacha: `
 ✦━━━━━━༺♡༻━━━━━━✦
 ⋆｡ﾟ☁︎｡⋆｡  𝗚𝗔𝗖𝗛𝗔  ⋆｡ﾟ☁︎｡⋆｡
 ✦━━━━━━༺♡༻━━━━━━✦
@@ -76,7 +76,7 @@ gacha: `
 ✦ $prefixvote
 ✦ $prefixwaifusboard
 `,
-downloads: `
+  downloads: `
 ✦━━━━━━༺♡༻━━━━━━✦
 ⋆｡ﾟ☁︎｡⋆｡  𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗  ⋆｡ﾟ☁︎｡⋆｡
 ✦━━━━━━༺♡༻━━━━━━✦
@@ -92,7 +92,7 @@ downloads: `
 ✦ $prefiximagen
 ✦ $prefixapk
 `,
-profile: `
+  profile: `
 ✦━━━━━━༺♡༻━━━━━━✦
 ⋆｡ﾟ☁︎｡⋆｡  𝗣𝗥𝗢𝗙𝗜𝗟𝗘𝗦  ⋆｡ﾟ☁︎｡⋆｡
 ✦━━━━━━༺♡༻━━━━━━✦
@@ -113,7 +113,7 @@ profile: `
 ✦ $prefixsetpasatiempo
 ✦ $prefixdelpasatiempo
 `,
-sockets: `
+  sockets: `
 ✦━━━━━━༺♡༻━━━━━━✦
 ⋆｡ﾟ☁︎｡⋆｡  𝗦𝗢𝗖𝗞𝗘𝗧𝗦  ⋆｡ﾟ☁︎｡⋆｡
 ✦━━━━━━༺♡༻━━━━━━✦
@@ -136,7 +136,7 @@ sockets: `
 ✦ setstatus
 ✦ setusername
 `,
-utils: `
+  utils: `
 ✦━━━━━━༺♡༻━━━━━━✦
 ⋆｡ﾟ☁︎｡⋆｡  𝗨𝗧𝗜𝗟𝗜𝗧𝗜𝗘𝗦  ⋆｡ﾟ☁︎｡⋆｡
 ✦━━━━━━༺♡༻━━━━━━✦
@@ -162,7 +162,7 @@ utils: `
 ✦ inspect
 ✦ $prefixread
 `,
-grupo: `
+  grupo: `
 ✦━━━━━━༺♡༻━━━━━━✦
 ⋆｡ﾟ☁︎｡⋆｡  𝗚𝗥𝗢𝗨𝗣𝗦  ⋆｡ﾟ☁︎｡⋆｡
 ✦━━━━━━༺♡༻━━━━━━✦
@@ -190,7 +190,7 @@ grupo: `
 ✦ $prefixwarn
 ✦ $prefixlink
 `,
-anime: `
+  anime: `
 ✦━━━━━━༺♡༻━━━━━━✦
 ⋆｡ﾟ☁︎｡⋆｡  𝗔𝗡𝗜𝗠𝗘  ⋆｡ﾟ☁︎｡⋆｡
 ✦━━━━━━༺♡༻━━━━━━✦
@@ -206,7 +206,7 @@ anime: `
 ✦ $prefixcry
 ✦ $prefixlick
 `,
-nsfw: `
+  nsfw: `
 ✦━━━━━━༺♡༻━━━━━━✦
 ⋆｡ﾟ☁︎｡⋆｡  𝗡𝗦𝗙𝗪  ⋆｡ﾟ☁︎｡⋆｡
 ✦━━━━━━༺♡༻━━━━━━✦
@@ -219,5 +219,5 @@ nsfw: `
 ✦ $prefixfuck
 ✦ $prefixcum
 ✦ $prefixblowjob
-`
-}
+`,
+};
