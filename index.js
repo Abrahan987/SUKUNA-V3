@@ -1,6 +1,6 @@
 import "./settings.js"
-import main from './main.js'
-import events from './commands/events.js'
+import main from './src/handler.js'
+import events from './src/plugins/events.js'
 import { Browsers, makeWASocket, makeCacheableSignalKeyStore, useMultiFileAuthState, fetchLatestBaileysVersion, jidDecode, DisconnectReason, jidNormalizedUser, } from "@whiskeysockets/baileys";
 import cfonts from 'cfonts';
 import pino from "pino";
@@ -11,9 +11,9 @@ import path from "path";
 import readlineSync from "readline-sync";
 import readline from "readline";
 import os from "os";
-import { smsg } from "./lib/message.js";
-import db from "./lib/system/database.js";
-import { startSubBot } from './lib/subs.js';
+import { smsg } from "./src/lib/message.js";
+import db from "./src/lib/system/database.js";
+import { startSubBot } from './src/lib/subs.js';
 import { exec, execSync } from "child_process";
 
 const log = {
@@ -228,7 +228,7 @@ async function startBot() {
     }
   })
   try {
-  await events(client, m)
+    await events(client)
   } catch (err) {
    console.log(chalk.gray(`[ BOT  ]  → ${err}`))
   }
