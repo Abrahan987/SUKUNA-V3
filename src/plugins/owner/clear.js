@@ -27,7 +27,7 @@ export default {
         if (chat.sales?.[id]?.user === jid) delete chat.sales[id]
         if (chat.users[jid].favorite === id) delete chat.users[jid].favorite
       }
-      waifus += u.characters.length
+      waifus += (u.characters || []).length
       dinero += u.coins + u.bank
       delete chat.users[jid]
       eliminados++

@@ -142,7 +142,7 @@ export default async (client, m) => {
 
   if (!isOwners && settings.self) return
   if (m.chat && !m.chat.endsWith('g.us')) {
-    const allowedInPrivateForUsers = ['play', 'menu', 'help']
+    const allowedInPrivateForUsers = ['play', 'menu', 'help', 'subbot', 'qr', 'code', 'sticker']
     if (!isOwners && !allowedInPrivateForUsers.includes(command)) return
   }
 
@@ -169,8 +169,8 @@ export default async (client, m) => {
   }
 
   if (cmdData.isOwner && !isOwners) return m.reply(` El comando *${command}* no existe.\n✎ Usa *${usedPrefix}help* para ver la lista de comandos.`)
-  if (cmdData.isAdmin && !isAdmins) return m.reply('Este comando es solo para administradores.')
-  if (cmdData.botAdmin && !isBotAdmins) return m.reply('Necesito ser administrador para ejecutar este comando.')
+  if (cmdData.isAdmin && !isAdmins) return m.reply(global.mess?.admin || 'Este comando es solo para administradores.')
+  if (cmdData.botAdmin && !isBotAdmins) return m.reply(global.mess?.botAdmin || 'Necesito ser administrador para ejecutar este comando.')
 
   try {
     await client.readMessages([m.key])

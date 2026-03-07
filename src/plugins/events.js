@@ -2,7 +2,7 @@ import fetch from 'node-fetch'
 let WAMessageStubType = (await import('@whiskeysockets/baileys')).default
 import chalk from 'chalk'
 
-export default async (client, m) => {
+export default async (client) => {
   client.ev.on('group-participants.update', async (anu) => {
     try {
       const metadata = await client.groupMetadata(anu.id).catch(() => null)
