@@ -142,7 +142,7 @@ export default async (client, m) => {
 
   if (!isOwners && settings.self) return
   if (m.chat && !m.chat.endsWith('g.us')) {
-    const allowedInPrivateForUsers = ['sug', 'suggest', 'invite', 'invitar', 'setname', 'setbotname', 'setbanner', 'setmenubanner', 'setusername', 'setpfp', 'setimage', 'setbotcurrency', 'setbotprefix', 'setstatus', 'setbotowner', 'subbot']
+    const allowedInPrivateForUsers = ['play', 'menu', 'help']
     if (!isOwners && !allowedInPrivateForUsers.includes(command)) return
   }
 
